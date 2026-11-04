@@ -6,6 +6,15 @@ import { AuthProvider } from '../../context/AuthContext';
 import LoginPage from '../LoginPage';
 import * as clientModule from '../../api/client';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 vi.mock('../../api/client', async () => {
   const actual = await vi.importActual('../../api/client');
   return {
@@ -27,7 +36,7 @@ describe('LoginPage', () => {
     sessionStorage.clear();
   });
 
-  it('renders login form with inputs and sign in button', () => {
+  it('renders login form with inputs, sign in button, and register invitation link', () => {
     render(
       <AuthProvider>
         <BrowserRouter>
@@ -40,6 +49,7 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText(/Email Address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign in/i })).toBeInTheDocument();
+    expect(screen.getByText(/Register with Invitation/i)).toBeInTheDocument();
   });
 
   it('validates empty inputs before submission', async () => {
@@ -92,11 +102,17 @@ describe('LoginPage', () => {
     });
   });
 
-  it('authenticates successfully and invokes setTokens on valid credentials', async () => {
+  it('authenticates recruiter successfully and navigates to recruiter /dashboard', async () => {
     clientModule.api.post.mockResolvedValueOnce({
       data: {
         access: 'mock-access-token',
         refresh: 'mock-refresh-token',
+      },
+    });
+    clientModule.api.get.mockResolvedValueOnce({
+      data: {
+        email: 'recruiter@example.com',
+        role: 'recruiter',
       },
     });
 
@@ -123,6 +139,44 @@ describe('LoginPage', () => {
         'mock-access-token',
         'mock-refresh-token'
       );
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+  });
+
+  it('authenticates admin successfully and navigates to /admin/dashboard', async () => {
+    clientModule.api.post.mockResolvedValueOnce({
+      data: {
+        access: 'mock-admin-access-token',
+        refresh: 'mock-admin-refresh-token',
+      },
+    });
+    clientModule.api.get.mockResolvedValueOnce({
+      data: {
+        email: 'admin@example.com',
+        role: 'admin',
+      },
+    });
+
+    render(
+      <AuthProvider>
+        <BrowserRouter>
+          <LoginPage />
+        </BrowserRouter>
+      </AuthProvider>
+    );
+
+    fireEvent.change(screen.getByLabelText(/Email Address/i), {
+      target: { value: 'admin@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Password/i), {
+      target: { value: 'adminpassword' },
+    });
+
+    const form = screen.getByRole('button', { name: /Sign in/i }).closest('form');
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard');
     });
   });
 });

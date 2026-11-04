@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import { Users, Briefcase, FileQuestion, Activity, ArrowUpRight, Clock, Plus } from 'lucide-react';
+import { Users, Briefcase, FileQuestion, ArrowUpRight, Plus } from 'lucide-react';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -34,7 +34,7 @@ export default function DashboardPage() {
           recentInterviews: recent.slice(0, 5),
         });
       } catch (err) {
-        setError('Failed to load dashboard metrics from backend.');
+        setError('Failed to load recruiter metrics from backend.');
       } finally {
         setLoading(false);
       }
@@ -44,13 +44,13 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
-    return <div style={{ color: 'var(--text-muted)' }}>Loading dashboard metrics...</div>;
+    return <div style={{ color: 'var(--text-muted)' }}>Loading recruiter overview...</div>;
   }
 
   const statCards = [
-    { label: 'Total Candidates', value: stats.candidatesCount, icon: Users, path: '/candidates', color: '#6366f1' },
-    { label: 'Active Jobs', value: stats.jobsCount, icon: Briefcase, path: '/jobs', color: '#06b6d4' },
-    { label: 'Scheduled / Draft Interviews', value: stats.interviewsCount, icon: FileQuestion, path: '/interviews', color: '#10b981' },
+    { label: 'My Candidates', value: stats.candidatesCount, icon: Users, path: '/candidates', color: '#6366f1' },
+    { label: 'My Active Jobs', value: stats.jobsCount, icon: Briefcase, path: '/jobs', color: '#06b6d4' },
+    { label: 'Scheduled / In-Progress Interviews', value: stats.interviewsCount, icon: FileQuestion, path: '/interviews', color: '#10b981' },
   ];
 
   return (
@@ -61,7 +61,7 @@ export default function DashboardPage() {
             Recruiter Overview
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
-            Real-time pipeline metrics and AI plan statuses
+            Manage candidates, jobs, interview plans, and AI evaluations
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
       {/* Recent Interviews Table */}
       <div className="glass-panel" style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff' }}>Recent Interviews</h3>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff' }}>My Recent Interviews</h3>
           <Link to="/interviews" style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>
             View all
           </Link>

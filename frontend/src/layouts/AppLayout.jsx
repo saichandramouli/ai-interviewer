@@ -6,30 +6,32 @@ import {
   Users,
   Briefcase,
   FileQuestion,
-  Activity,
   LogOut,
   Sparkles,
-  Menu,
-  X,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function AppLayout() {
-  const { userEmail, logout } = useAuth();
+  const { userEmail, userRole, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { label: 'Candidates', path: '/candidates', icon: Users },
-    { label: 'Jobs', path: '/jobs', icon: Briefcase },
-    { label: 'Interviews', path: '/interviews', icon: FileQuestion },
-    { label: 'Operations', path: '/operations', icon: Activity },
-  ];
+  // Strictly separated role-based navigation menus
+  const navItems = isAdmin
+    ? [
+        { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'User Management', path: '/admin/users', icon: ShieldCheck },
+      ]
+    : [
+        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Candidates', path: '/candidates', icon: Users },
+        { label: 'Jobs', path: '/jobs', icon: Briefcase },
+        { label: 'Interviews', path: '/interviews', icon: FileQuestion },
+      ];
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -69,7 +71,7 @@ export default function AppLayout() {
               AI Interviewer
             </h1>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>
-              Recruiter Console
+              {isAdmin ? 'Admin Console' : 'Recruiter Console'}
             </span>
           </div>
         </div>
@@ -111,8 +113,13 @@ export default function AppLayout() {
             border: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {userEmail || 'Recruiter'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {userEmail || 'User'}
+            </div>
+            <span className={`badge ${isAdmin ? 'badge-completed' : 'badge-draft'}`} style={{ fontSize: '0.65rem' }}>
+              {userRole}
+            </span>
           </div>
           <button
             onClick={handleLogout}
@@ -125,6 +132,9 @@ export default function AppLayout() {
               marginTop: '8px',
               cursor: 'pointer',
               transition: 'color 0.15s',
+              background: 'none',
+              border: 'none',
+              padding: 0,
             }}
             onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-faint)')}
@@ -153,10 +163,12 @@ export default function AppLayout() {
           }}
         >
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            Workspace: <strong style={{ color: '#fff' }}>Local Antigravity Instance</strong>
+            Console: <strong style={{ color: '#fff' }}>{isAdmin ? 'Administrator Access' : 'Recruiter Access'}</strong>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span className="badge badge-completed">Phase 6 Active</span>
+            <span className="badge badge-completed">
+              {isAdmin ? 'Admin Mode' : 'Recruiter Mode'}
+            </span>
           </div>
         </header>
 

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, mixins
+from accounts.permissions import IsRecruiterUser
 from operations.models import AsyncOperation
 from operations.serializers import AsyncOperationStatusSerializer
 
@@ -8,7 +9,7 @@ class AsyncOperationViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsRecruiterUser]
     serializer_class = AsyncOperationStatusSerializer
 
     def get_queryset(self):

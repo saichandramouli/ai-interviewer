@@ -6,7 +6,25 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAccessToken() || getRefreshToken()));
   const [userEmail, setUserEmail] = useState(sessionStorage.getItem('ai_user_email') || '');
+  const [userRole, setUserRole] = useState(sessionStorage.getItem('ai_user_role') || 'recruiter');
   const [loading, setLoading] = useState(true);
+
+  const fetchUserProfile = async () => {
+    try {
+      const resp = await api.get('/auth/me/');
+      if (resp.data?.email) {
+        setUserEmail(resp.data.email);
+        sessionStorage.setItem('ai_user_email', resp.data.email);
+      }
+      if (resp.data?.role) {
+        setUserRole(resp.data.role);
+        sessionStorage.setItem('ai_user_role', resp.data.role);
+      }
+      return resp.data;
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
     // Try restoring session from refresh token on startup
@@ -17,10 +35,13 @@ export const AuthProvider = ({ children }) => {
           const resp = await api.post('/auth/token/refresh/', { refresh });
           setTokens(resp.data.access, resp.data.refresh || refresh);
           setIsAuthenticated(true);
+          await fetchUserProfile();
         } catch {
           clearTokens();
           setIsAuthenticated(false);
           setUserEmail('');
+          setUserRole('recruiter');
+          sessionStorage.removeItem('ai_user_role');
         }
       }
       setLoading(false);
@@ -29,6 +50,8 @@ export const AuthProvider = ({ children }) => {
     const handleUnauthorized = () => {
       setIsAuthenticated(false);
       setUserEmail('');
+      setUserRole('recruiter');
+      sessionStorage.removeItem('ai_user_role');
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
@@ -45,17 +68,20 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.setItem('ai_user_email', email);
     setUserEmail(email);
     setIsAuthenticated(true);
-    return resp.data;
+    const profile = await fetchUserProfile();
+    return { ...resp.data, role: profile?.role || 'recruiter' };
   };
 
   const logout = () => {
     clearTokens();
+    sessionStorage.removeItem('ai_user_role');
     setIsAuthenticated(false);
     setUserEmail('');
+    setUserRole('recruiter');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, loading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, userRole, loading, login, logout, isAdmin: userRole === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );

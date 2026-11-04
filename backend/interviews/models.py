@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from candidates.models import Candidate
 from jobs.models import Job
@@ -231,3 +232,91 @@ class InterviewEvent(models.Model):
     def __str__(self):
         return f"Event {self.event_type} ({self.idempotency_key}) - {self.processing_status}"
 
+
+
+class CandidateInterviewAccessToken(models.Model):
+    """
+    Cryptographically secure, unguessable candidate interview access token.
+    Stores only the SHA-256 hash. The raw token is never persisted.
+    """
+    id = models.BigAutoField(primary_key=True)
+    interview = models.ForeignKey(
+        Interview,
+        on_delete=models.CASCADE,
+        related_name='access_tokens',
+    )
+    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    is_revoked = models.BooleanField(default=False)
+
+    # Email invitation delivery tracking
+    DELIVERY_PENDING = 'pending'
+    DELIVERY_SENDING = 'sending'
+    DELIVERY_SENT = 'sent'
+    DELIVERY_FAILED = 'failed'
+
+    DELIVERY_CHOICES = [
+        (DELIVERY_PENDING, 'Pending'),
+        (DELIVERY_SENDING, 'Sending'),
+        (DELIVERY_SENT, 'Sent'),
+        (DELIVERY_FAILED, 'Failed'),
+    ]
+
+    delivery_status = models.CharField(
+        max_length=20,
+        choices=DELIVERY_CHOICES,
+        default=DELIVERY_PENDING,
+        db_index=True,
+    )
+    sent_at = models.DateTimeField(null=True, blank=True)
+    delivery_started_at = models.DateTimeField(null=True, blank=True)
+    recipient_email = models.EmailField(blank=True, default='')
+    delivery_error = models.TextField(blank=True, default='')
+    encrypted_candidate_url = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token_hash', 'is_revoked']),
+        ]
+
+    def __str__(self):
+        return f"AccessToken for Interview {self.interview_id} (Revoked: {self.is_revoked})"
+
+    @staticmethod
+    def hash_token(raw_token: str) -> str:
+        """Computes SHA-256 digest of raw candidate access token."""
+        import hashlib
+        return hashlib.sha256(raw_token.strip().encode('utf-8')).hexdigest()
+
+    @classmethod
+    def create_token(cls, interview: Interview, valid_hours: int = 72):
+        """
+        Generates a cryptographically secure random token, hashes it,
+        and returns (token_instance, raw_token).
+        """
+        import secrets
+        from datetime import timedelta
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = cls.hash_token(raw_token)
+        expires_at = timezone.now() + timedelta(hours=valid_hours)
+
+        instance = cls.objects.create(
+            interview=interview,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
+        return instance, raw_token
+
+    @property
+    def is_valid(self) -> bool:
+        """True if token is not revoked, not expired, and interview is not completed/cancelled."""
+        if self.is_revoked:
+            return False
+        if timezone.now() >= self.expires_at:
+            return False
+        if self.interview.status in [Interview.STATUS_COMPLETED, Interview.STATUS_CANCELLED]:
+            return False
+        return True

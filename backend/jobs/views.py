@@ -1,11 +1,12 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from accounts.permissions import IsRecruiterUser
 from jobs.models import Job
 from jobs.serializers import JobSerializer
 
 
 class JobViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsRecruiterUser]
     serializer_class = JobSerializer
 
     def get_queryset(self):

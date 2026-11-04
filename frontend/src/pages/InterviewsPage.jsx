@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import { Plus, Sparkles, RefreshCw, Eye, Play } from 'lucide-react';
+import { Plus, Sparkles, RefreshCw, Eye, Play, Award, Send } from 'lucide-react';
+import CandidateInviteModal from '../components/CandidateInviteModal';
 
 export default function InterviewsPage() {
   const [interviews, setInterviews] = useState([]);
@@ -9,6 +10,7 @@ export default function InterviewsPage() {
   const [error, setError] = useState('');
   const [generatingId, setGeneratingId] = useState(null);
   const [operationMsg, setOperationMsg] = useState('');
+  const [selectedInviteInterview, setSelectedInviteInterview] = useState(null);
 
   const fetchInterviews = async () => {
     setLoading(true);
@@ -146,6 +148,27 @@ export default function InterviewsPage() {
                         <Eye size={12} />
                         <span>Plan</span>
                       </Link>
+                      {intv.status !== 'completed' && intv.status !== 'cancelled' && (
+                        <button
+                          onClick={() => setSelectedInviteInterview(intv)}
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.75rem', borderColor: '#34d399', color: '#6ee7b7', gap: '6px' }}
+                          title="Generate candidate link and send invitation email"
+                        >
+                          <Send size={12} />
+                          <span>Invite</span>
+                        </button>
+                      )}
+                      {intv.status === 'completed' && (
+                        <Link
+                          to={`/interviews/${intv.id}/report`}
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.75rem', borderColor: '#818cf8', color: '#a5b4fc' }}
+                        >
+                          <Award size={12} />
+                          <span>Evaluation</span>
+                        </Link>
+                      )}
                       <Link
                         to={`/interviews/${intv.id}/session`}
                         className="btn btn-primary"
@@ -162,6 +185,12 @@ export default function InterviewsPage() {
           </div>
         )}
       </div>
+
+      <CandidateInviteModal
+        interview={selectedInviteInterview}
+        isOpen={!!selectedInviteInterview}
+        onClose={() => setSelectedInviteInterview(null)}
+      />
     </div>
   );
 }

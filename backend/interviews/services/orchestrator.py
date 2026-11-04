@@ -14,6 +14,10 @@ from interviews.models import (
 from candidates.models import Candidate
 from integrations.voice.base import VoiceProvider, VoiceProviderError
 from integrations.voice.mock_provider import MockVoiceProvider
+from interviews.services.dialogue_service import (
+    NemotronDialogueService,
+    DialogueTurnResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +48,21 @@ class InterviewOrchestrationService:
     """
     Coordinates interview lifecycle, timing, question progression,
     simulated audio events, transcript persistence, and termination.
+    Integrated with NemotronDialogueService for AI-driven conversational dialogue.
     """
 
     WARNING_THRESHOLD_PERCENT = 80  # Warning threshold at 80% duration elapsed
+    MAX_FOLLOW_UPS_PER_QUESTION = 1  # Cap follow-ups to maintain structured progress
 
-    def __init__(self, interview: Interview, provider: Optional[VoiceProvider] = None):
+    def __init__(
+        self,
+        interview: Interview,
+        provider: Optional[VoiceProvider] = None,
+        dialogue_service: Optional[NemotronDialogueService] = None,
+    ):
         self.interview = interview
         self.provider = provider or MockVoiceProvider()
+        self.dialogue_service = dialogue_service or NemotronDialogueService()
 
     def _calculate_timing(self) -> Dict[str, Any]:
         """Calculates elapsed, remaining, and limit seconds based on persisted timestamps."""
@@ -184,7 +196,8 @@ class InterviewOrchestrationService:
         """
         Advances the interview:
         - If previous question awaits answer, accepts simulated candidate response.
-        - Next, presents the next unanswered question.
+        - Evaluates response via NemotronDialogueService. If follow-up warranted and under limit, delivers follow-up.
+        - Otherwise, presents the next unanswered question.
         - If all questions answered or time limit reached, concludes interview.
         """
         if idempotency_key:
@@ -217,15 +230,28 @@ class InterviewOrchestrationService:
         last_entry = self.interview.transcripts.order_by('-sequence_number').first()
         next_seq = (last_entry.sequence_number + 1) if last_entry else 1
 
-        # Check if the last speaker was AI asking a question (not just intro)
-        # Sequence 1 with intro does not require candidate answer to proceed to Q1
+        # Check if the last speaker was AI asking a question or follow-up (not just intro)
         ai_question_entries = [
             t for t in self.interview.transcripts.all()
-            if t.speaker == TranscriptEntry.SPEAKER_AI and t.text.startswith("Question ")
+            if t.speaker == TranscriptEntry.SPEAKER_AI and (t.text.startswith("Question ") or t.text.startswith("Follow-up:"))
         ]
 
+        # Calculate current questions asked
+        questions = list(self.interview.questions.order_by('sequence_number'))
+        base_questions_asked = self.interview.transcripts.filter(
+            speaker=TranscriptEntry.SPEAKER_AI,
+            text__startswith="Question "
+        ).count()
+
+        current_question_obj = None
+        if 0 < base_questions_asked <= len(questions):
+            current_question_obj = questions[base_questions_asked - 1]
+
+        candidate_just_answered = False
+        candidate_answer_text = None
+
         if last_entry and last_entry.speaker == TranscriptEntry.SPEAKER_AI and ai_question_entries and last_entry.id == ai_question_entries[-1].id:
-            # We must record candidate's response to this question before moving to next
+            # We must record candidate's response to this question/follow-up before moving forward
             resp_res = self.provider.receive_candidate_response(
                 session_id=self.interview.provider_call_id or "mock-session",
                 simulated_text=simulated_candidate_response,
@@ -233,27 +259,83 @@ class InterviewOrchestrationService:
                 simulate_disconnect=simulate_disconnect,
             )
 
-            response_text = "[Candidate remained silent]" if resp_res.is_silence else resp_res.response_text
+            candidate_answer_text = "[Candidate remained silent]" if resp_res.is_silence else resp_res.response_text
             TranscriptEntry.objects.create(
                 interview=self.interview,
                 sequence_number=next_seq,
                 speaker=TranscriptEntry.SPEAKER_CANDIDATE,
-                text=response_text,
+                text=candidate_answer_text,
                 timestamp=timezone.now(),
             )
             next_seq += 1
+            candidate_just_answered = True
 
-        # Determine which question index to deliver next
-        # Count how many AI question entries have been asked
-        # Note: sequence 1 might be introduction
-        ai_entries = self.interview.transcripts.filter(speaker=TranscriptEntry.SPEAKER_AI).count()
-        intro_present = bool(self.interview.plan_data.get('introduction'))
-        questions_asked_count = (ai_entries - 1) if intro_present else ai_entries
-        questions_asked_count = max(0, questions_asked_count)
+        # Check if candidate just answered a base Question (not a follow-up)
+        # and whether we should generate a dialogue turn (e.g. follow-up check)
+        if candidate_just_answered and current_question_obj:
+            is_last_ai_follow_up = last_entry.text.startswith("Follow-up:") if last_entry else False
+            
+            # Check how many follow-ups have been asked for current question
+            # Follow-ups for this question would appear after the base Question entry
+            base_q_entry = self.interview.transcripts.filter(
+                speaker=TranscriptEntry.SPEAKER_AI,
+                text__startswith=f"Question {current_question_obj.sequence_number}:"
+            ).first()
 
-        questions = list(self.interview.questions.order_by('sequence_number'))
-        if questions_asked_count < len(questions):
-            next_question = questions[questions_asked_count]
+            follow_ups_count = 0
+            if base_q_entry:
+                follow_ups_count = self.interview.transcripts.filter(
+                    speaker=TranscriptEntry.SPEAKER_AI,
+                    text__startswith="Follow-up:",
+                    sequence_number__gt=base_q_entry.sequence_number
+                ).count()
+
+            allow_follow_up = (follow_ups_count < self.MAX_FOLLOW_UPS_PER_QUESTION) and not is_last_ai_follow_up
+
+            # Only consult dialogue service if candidate actually spoke (not silent) and follow-up allowed
+            if allow_follow_up and candidate_answer_text and candidate_answer_text != "[Candidate remained silent]":
+                dialogue_turn = self.dialogue_service.generate_dialogue_turn(
+                    interview=self.interview,
+                    candidate_response_text=candidate_answer_text,
+                    current_question=current_question_obj,
+                    elapsed_seconds=timing["elapsed_seconds"],
+                    is_closing=False,
+                    allow_follow_up=True,
+                )
+
+                if dialogue_turn.next_action == "follow_up":
+                    # Deliver follow-up question
+                    follow_up_text = dialogue_turn.message
+                    if not follow_up_text.startswith("Follow-up:"):
+                        follow_up_text = f"Follow-up: {follow_up_text}"
+
+                    self.provider.deliver_question(
+                        session_id=self.interview.provider_call_id or "mock-session",
+                        sequence_number=current_question_obj.sequence_number,
+                        question_text=follow_up_text,
+                    )
+                    TranscriptEntry.objects.create(
+                        interview=self.interview,
+                        sequence_number=next_seq,
+                        speaker=TranscriptEntry.SPEAKER_AI,
+                        text=follow_up_text,
+                        timestamp=timezone.now(),
+                    )
+                    self._record_event(
+                        idempotency_key or f"follow-up-q{current_question_obj.sequence_number}-{timezone.now().timestamp()}",
+                        "follow_up_delivered",
+                        {
+                            "question_id": current_question_obj.id,
+                            "sequence": current_question_obj.sequence_number,
+                            "evaluation_notes": dialogue_turn.evaluation_notes,
+                        },
+                        status=InterviewEvent.STATUS_PROCESSED
+                    )
+                    return self.get_session_state(message=f"Delivered follow-up for Question {current_question_obj.sequence_number}.")
+
+        # Advance to the next base question
+        if base_questions_asked < len(questions):
+            next_question = questions[base_questions_asked]
             # Deliver question
             self.provider.deliver_question(
                 session_id=self.interview.provider_call_id or "mock-session",
@@ -318,6 +400,13 @@ class InterviewOrchestrationService:
             status=InterviewEvent.STATUS_PROCESSED
         )
 
+        # Dispatch automated AI evaluation task after transaction commits
+        interview_id_str = str(self.interview.id)
+        from evaluations.tasks import generate_evaluation_task
+        transaction.on_commit(
+            lambda: generate_evaluation_task.delay(interview_id_str)
+        )
+
         return self.get_session_state(message=f"Interview completed: {reason}")
 
     @transaction.atomic
@@ -373,15 +462,16 @@ class InterviewOrchestrationService:
         transcripts = list(self.interview.transcripts.order_by('sequence_number'))
 
         # Determine current active question
-        ai_entries = [t for t in transcripts if t.speaker == TranscriptEntry.SPEAKER_AI]
-        intro_present = bool(self.interview.plan_data.get('introduction'))
-        questions_asked = (len(ai_entries) - 1) if intro_present else len(ai_entries)
-        questions_asked = max(0, questions_asked)
+        # Count base questions asked (entries starting with 'Question ')
+        base_questions_asked = self.interview.transcripts.filter(
+            speaker=TranscriptEntry.SPEAKER_AI,
+            text__startswith="Question "
+        ).count()
 
         current_q = None
-        if 0 < questions_asked <= len(questions):
-            current_q = questions[questions_asked - 1]
-        elif questions_asked == 0 and questions:
+        if 0 < base_questions_asked <= len(questions):
+            current_q = questions[base_questions_asked - 1]
+        elif base_questions_asked == 0 and questions:
             current_q = questions[0]
 
         last_entry = transcripts[-1] if transcripts else None
@@ -422,7 +512,7 @@ class InterviewOrchestrationService:
             } if current_q else None,
             "progress": {
                 "total_questions": len(questions),
-                "questions_asked": min(questions_asked, len(questions)),
+                "questions_asked": min(base_questions_asked, len(questions)),
                 "is_completed": self.interview.status == Interview.STATUS_COMPLETED,
                 "awaiting_candidate_response": awaiting_candidate_response,
             },

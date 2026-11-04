@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from accounts.permissions import IsRecruiterUser
 from candidates.models import Candidate
 from candidates.serializers import CandidateListSerializer, CandidateDetailSerializer
 from candidates.services.resume_extractor import (
@@ -20,7 +21,7 @@ from candidates.tasks import extract_resume_task
 
 
 class CandidateViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsRecruiterUser]
 
     def get_queryset(self):
         return Candidate.objects.filter(created_by=self.request.user)

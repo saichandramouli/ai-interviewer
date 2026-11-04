@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Lock, Mail, AlertCircle, ArrowRight, UserPlus } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,8 +21,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const authData = await login(email, password);
+      if (authData?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       if (err.response?.data?.detail) {
         setError(err.response.data.detail);
@@ -145,6 +149,37 @@ export default function LoginPage() {
             {!loading && <ArrowRight size={16} />}
           </button>
         </form>
+
+        {/* Admin-Controlled Registration Link */}
+        <div
+          style={{
+            marginTop: '20px',
+            paddingTop: '18px',
+            borderTop: '1px solid var(--border-subtle)',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+            Have an invitation token?
+          </div>
+          <Link
+            to="/register"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginTop: '6px',
+              color: 'var(--primary)',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              transition: 'opacity 0.15s',
+            }}
+          >
+            <UserPlus size={16} />
+            <span>Register with Invitation</span>
+          </Link>
+        </div>
 
         <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-faint)' }}>
           Local development JWT session • Password and credentials never exposed
