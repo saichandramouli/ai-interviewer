@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { ArrowLeft, Upload, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Upload, AlertCircle, FileText } from 'lucide-react';
+import { PageHeader, Card, Button, Input } from '../components/ui';
 
 export default function CandidateFormPage() {
   const [fullName, setFullName] = useState('');
@@ -66,44 +67,52 @@ export default function CandidateFormPage() {
 
   return (
     <div style={{ maxWidth: '640px' }}>
-      <button
-        onClick={() => navigate('/candidates')}
-        className="btn btn-secondary"
-        style={{ marginBottom: '20px', padding: '6px 12px', fontSize: '0.8125rem' }}
-      >
-        <ArrowLeft size={14} />
-        <span>Back to Candidates</span>
-      </button>
+      {/* PageHeader with Back Button */}
+      <PageHeader
+        title="Add New Candidate"
+        description="Create profile and upload candidate CV for AI question generation"
+        breadcrumbs={[
+          { label: 'Candidates', to: '/candidates' },
+          { label: 'New Candidate' },
+        ]}
+      />
 
-      <div className="glass-panel" style={{ padding: '32px' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
-          Add New Candidate
-        </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '24px' }}>
-          Create profile and upload candidate CV for AI question generation
-        </p>
-
+      <Card padding="28px">
         {error && (
           <div
             style={{
-              padding: '12px 14px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--danger-bg)',
-              color: '#f87171',
-              fontSize: '0.8125rem',
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-sm, 6px)',
+              backgroundColor: 'var(--danger-bg, #fef2f2)',
+              border: '1px solid var(--danger-border, #fecaca)',
+              color: 'var(--danger-text, #991b1b)',
+              fontSize: 'var(--text-sm, 0.8125rem)',
               display: 'flex',
+              alignItems: 'center',
               gap: '8px',
               marginBottom: '20px',
             }}
           >
-            <AlertCircle size={16} />
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="fullName">Full Name *</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              className="form-label"
+              htmlFor="fullName"
+              style={{
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                fontWeight: 500,
+                color: 'var(--text-body, #374151)',
+                marginBottom: '4px',
+                display: 'block',
+              }}
+            >
+              Full Name *
+            </label>
             <input
               id="fullName"
               required
@@ -111,11 +120,32 @@ export default function CandidateFormPage() {
               placeholder="e.g. Jane Doe"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                color: 'var(--text-body, #374151)',
+                fontSize: 'var(--text-base, 0.875rem)',
+              }}
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address *</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              className="form-label"
+              htmlFor="email"
+              style={{
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                fontWeight: 500,
+                color: 'var(--text-body, #374151)',
+                marginBottom: '4px',
+                display: 'block',
+              }}
+            >
+              Email Address *
+            </label>
             <input
               id="email"
               type="email"
@@ -124,27 +154,78 @@ export default function CandidateFormPage() {
               placeholder="jane.doe@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                color: 'var(--text-body, #374151)',
+                fontSize: 'var(--text-base, 0.875rem)',
+              }}
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="phone">Phone Number</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              className="form-label"
+              htmlFor="phone"
+              style={{
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                fontWeight: 500,
+                color: 'var(--text-body, #374151)',
+                marginBottom: '4px',
+                display: 'block',
+              }}
+            >
+              Phone Number
+            </label>
             <input
               id="phone"
               className="form-input"
               placeholder="+1 (555) 000-0000"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                color: 'var(--text-body, #374151)',
+                fontSize: 'var(--text-base, 0.875rem)',
+              }}
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="consent">Candidate Consent Status</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              className="form-label"
+              htmlFor="consent"
+              style={{
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                fontWeight: 500,
+                color: 'var(--text-body, #374151)',
+                marginBottom: '4px',
+                display: 'block',
+              }}
+            >
+              Candidate Consent Status
+            </label>
             <select
               id="consent"
               className="form-select"
               value={consentStatus}
               onChange={(e) => setConsentStatus(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                color: 'var(--text-body, #374151)',
+                fontSize: 'var(--text-base, 0.875rem)',
+              }}
             >
               <option value="pending">Pending (Not yet granted)</option>
               <option value="granted">Granted (Explicit authorization given)</option>
@@ -153,50 +234,89 @@ export default function CandidateFormPage() {
           </div>
 
           {consentStatus === 'granted' && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="consentMethod">Consent Verification Method</label>
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label
+                className="form-label"
+                htmlFor="consentMethod"
+                style={{
+                  fontSize: 'var(--text-sm, 0.8125rem)',
+                  fontWeight: 500,
+                  color: 'var(--text-body, #374151)',
+                  marginBottom: '4px',
+                  display: 'block',
+                }}
+              >
+                Consent Verification Method
+              </label>
               <input
                 id="consentMethod"
                 className="form-input"
                 placeholder="e.g. Email consent, Verbal agreement, Application form checkbox"
                 value={consentMethod}
                 onChange={(e) => setConsentMethod(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-subtle, #e2e8f0)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  color: 'var(--text-body, #374151)',
+                  fontSize: 'var(--text-base, 0.875rem)',
+                }}
               />
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label">Resume Document (.pdf or .docx, max 10MB)</label>
+          <div className="form-group" style={{ marginBottom: '24px' }}>
+            <label
+              className="form-label"
+              style={{
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                fontWeight: 500,
+                color: 'var(--text-body, #374151)',
+                marginBottom: '4px',
+                display: 'block',
+              }}
+            >
+              Resume Document (.pdf or .docx, max 10MB)
+            </label>
             <input
               type="file"
               accept=".pdf,.docx"
               onChange={handleFileChange}
               style={{
                 width: '100%',
-                padding: '10px',
-                background: 'rgba(10, 13, 20, 0.8)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--text-muted)',
-                fontSize: '0.875rem',
+                padding: '8px 12px',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                color: 'var(--text-body, #374151)',
+                fontSize: 'var(--text-sm, 0.8125rem)',
               }}
             />
           </div>
 
-          <div style={{ marginTop: '28px', display: 'flex', gap: '12px' }}>
-            <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '12px 24px' }}>
-              {loading ? 'Saving Candidate...' : 'Create Candidate'}
-            </button>
-            <button
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              loading={loading}
+              style={{ padding: '10px 20px' }}
+            >
+              Create Candidate
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => navigate('/candidates')}
-              className="btn btn-secondary"
+              style={{ padding: '10px 16px' }}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

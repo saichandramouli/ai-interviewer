@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import CandidatesPage from './pages/CandidatesPage';
 import CandidateFormPage from './pages/CandidateFormPage';
+import CandidateDetailPage from './pages/CandidateDetailPage';
 import JobsPage from './pages/JobsPage';
 import JobFormPage from './pages/JobFormPage';
 import InterviewsPage from './pages/InterviewsPage';
@@ -193,7 +194,7 @@ export default function App() {
               path="/candidates/:id"
               element={
                 <RecruiterRoute>
-                  <CandidateFormPage />
+                  <CandidateDetailPage />
                 </RecruiterRoute>
               }
             />

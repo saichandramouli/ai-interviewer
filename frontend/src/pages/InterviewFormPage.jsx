@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar, Clock, Globe } from 'lucide-react';
 
 export default function InterviewFormPage() {
   const [candidates, setCandidates] = useState([]);
@@ -9,6 +9,15 @@ export default function InterviewFormPage() {
   const [selectedCandidate, setSelectedCandidate] = useState('');
   const [selectedJob, setSelectedJob] = useState('');
   const [initiationType, setInitiationType] = useState('manual');
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [timeZone, setTimeZone] = useState(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  });
   const [durationLimit, setDurationLimit] = useState(1800);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,20 +50,55 @@ export default function InterviewFormPage() {
       return;
     }
 
+    let scheduledIso = null;
+    if (initiationType === 'scheduled') {
+      if (!scheduledDate || !scheduledTime) {
+        setError('Please select both an interview date and time for scheduled mode.');
+        return;
+      }
+
+      // Construct Date object from local date and time inputs
+      const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+      if (isNaN(scheduledDateTime.getTime())) {
+        setError('Invalid date or time value.');
+        return;
+      }
+
+      // Only future date/time combinations are allowed
+      if (scheduledDateTime.getTime() <= Date.now()) {
+        setError('Scheduled interview date and time must be in the future.');
+        return;
+      }
+
+      scheduledIso = scheduledDateTime.toISOString();
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      await api.post('/interviews/', {
+      const payload = {
         candidate: selectedCandidate,
         job: selectedJob,
         initiation_type: initiationType,
         duration_limit_seconds: parseInt(durationLimit, 10),
-        status: 'draft',
-      });
+      };
+
+      if (initiationType === 'scheduled') {
+        payload.scheduled_at = scheduledIso;
+        payload.timezone = timeZone;
+      } else {
+        payload.status = 'draft';
+      }
+
+      await api.post('/interviews/', payload);
       navigate('/interviews');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to setup interview session.');
+      const detail = err.response?.data?.scheduled_at?.[0] ||
+        err.response?.data?.timezone?.[0] ||
+        err.response?.data?.detail ||
+        'Failed to setup interview session.';
+      setError(detail);
     } finally {
       setLoading(false);
     }
@@ -72,10 +116,10 @@ export default function InterviewFormPage() {
       </button>
 
       <div className="glass-panel" style={{ padding: '32px' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main, #111827)', marginBottom: '8px' }}>
           Setup Interview Session
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '24px' }}>
+        <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.875rem', marginBottom: '24px' }}>
           Connect an authorized candidate with a job requisition to generate a tailored interview plan
         </p>
 
@@ -86,7 +130,7 @@ export default function InterviewFormPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label className="form-label" htmlFor="candidate">Select Candidate *</label>
             <select
@@ -133,6 +177,73 @@ export default function InterviewFormPage() {
               <option value="scheduled">Scheduled (Preset Time Window)</option>
             </select>
           </div>
+
+          {initiationType === 'scheduled' && (
+            <div
+              style={{
+                padding: '16px',
+                marginBottom: '16px',
+                borderRadius: 'var(--radius-sm, 6px)',
+                backgroundColor: 'var(--bg-primary, #f8fafc)',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+              }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" htmlFor="scheduledDate" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={14} style={{ color: 'var(--primary-accent, #2563eb)' }} />
+                    <span>Interview Date *</span>
+                  </label>
+                  <input
+                    id="scheduledDate"
+                    type="date"
+                    required
+                    className="form-input"
+                    value={scheduledDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" htmlFor="scheduledTime" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={14} style={{ color: 'var(--primary-accent, #2563eb)' }} />
+                    <span>Interview Time *</span>
+                  </label>
+                  <input
+                    id="scheduledTime"
+                    type="time"
+                    required
+                    className="form-input"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: 'var(--text-xs, 0.75rem)',
+                  color: 'var(--text-muted, #4B5563)',
+                  backgroundColor: '#ffffff',
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-xs, 4px)',
+                  border: '1px solid var(--border-subtle, #e2e8f0)',
+                }}
+              >
+                <Globe size={14} style={{ color: 'var(--primary-accent, #2563eb)', flexShrink: 0 }} />
+                <span>
+                  Detected Timezone: <strong>{timeZone}</strong> (Times are scheduled in your local timezone and stored in UTC)
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="duration">Target Duration Limit (Seconds)</label>

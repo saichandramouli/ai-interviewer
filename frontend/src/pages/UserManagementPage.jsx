@@ -126,14 +126,14 @@ export default function UserManagementPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main, #111827)', letterSpacing: '-0.02em' }}>
               User Management
             </h2>
             <span className="badge badge-completed" style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}>
               Admin Console
             </span>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
+          <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.875rem', marginTop: '4px' }}>
             Manage registered users and control recruiter invitation onboarding
           </p>
         </div>
@@ -157,10 +157,10 @@ export default function UserManagementPage() {
 
       {/* Invitation Generation Card */}
       <div className="glass-panel" style={{ padding: '24px', marginBottom: '28px' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>
+        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)', marginBottom: '6px' }}>
           Invite New Recruiter
         </h3>
-        <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+        <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #4B5563)', marginBottom: '16px' }}>
           Generate a single-use, 48-hour onboarding invitation link. Only the token hash is stored in the database.
         </p>
 
@@ -197,10 +197,10 @@ export default function UserManagementPage() {
             }}
           >
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #4B5563)', fontWeight: 600 }}>
                 INVITATION REGISTRATION LINK (Share this securely with the invitee):
               </div>
-              <div style={{ fontSize: '0.875rem', color: '#fff', wordBreak: 'break-all', fontFamily: 'monospace', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.875rem', color: '#111827', wordBreak: 'break-all', fontFamily: 'monospace', marginTop: '2px' }}>
                 {generatedLink}
               </div>
             </div>
@@ -228,8 +228,8 @@ export default function UserManagementPage() {
             cursor: 'pointer',
             fontSize: '0.9375rem',
             fontWeight: 700,
-            color: activeTab === 'invitations' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'invitations' ? '2px solid var(--primary)' : '2px solid transparent',
+            color: '#111827',
+            borderBottom: activeTab === 'invitations' ? '2px solid var(--primary, #1e293b)' : '2px solid transparent',
           }}
         >
           Invitations ({invitations.length})
@@ -243,8 +243,8 @@ export default function UserManagementPage() {
             cursor: 'pointer',
             fontSize: '0.9375rem',
             fontWeight: 700,
-            color: activeTab === 'users' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'users' ? '2px solid var(--primary)' : '2px solid transparent',
+            color: '#111827',
+            borderBottom: activeTab === 'users' ? '2px solid var(--primary, #1e293b)' : '2px solid transparent',
           }}
         >
           Registered Users ({users.length})
@@ -254,12 +254,12 @@ export default function UserManagementPage() {
       {/* Tab 1: Invitations List */}
       {activeTab === 'invitations' && (
         <div className="glass-panel" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)', marginBottom: '16px' }}>
             Recruiter Invitations
           </h3>
 
           {invitations.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-faint)' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-faint, #6B7280)' }}>
               No invitations created yet. Use the form above to invite a recruiter.
             </div>
           ) : (
@@ -267,18 +267,18 @@ export default function UserManagementPage() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Invited Email</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Expires</th>
-                    <th>Created By</th>
-                    <th>Action</th>
+                    <th style={{ color: '#111827' }}>Invited Email</th>
+                    <th style={{ color: '#111827' }}>Status</th>
+                    <th style={{ color: '#111827' }}>Created</th>
+                    <th style={{ color: '#111827' }}>Expires</th>
+                    <th style={{ color: '#111827' }}>Created By</th>
+                    <th style={{ color: '#111827' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invitations.map((inv) => (
                     <tr key={inv.id}>
-                      <td style={{ fontWeight: 600, color: '#fff' }}>{inv.email}</td>
+                      <td style={{ fontWeight: 600, color: '#111827' }}>{inv.email}</td>
                       <td>
                         <span
                           className={`badge ${
@@ -292,13 +292,13 @@ export default function UserManagementPage() {
                           {inv.status}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--text-faint)', fontSize: '0.8125rem' }}>
+                      <td style={{ color: '#111827', fontSize: '0.8125rem' }}>
                         {new Date(inv.created_at).toLocaleDateString()}
                       </td>
-                      <td style={{ color: 'var(--text-faint)', fontSize: '0.8125rem' }}>
+                      <td style={{ color: '#111827', fontSize: '0.8125rem' }}>
                         {new Date(inv.expires_at).toLocaleDateString()}
                       </td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
+                      <td style={{ color: '#111827', fontSize: '0.8125rem' }}>
                         {inv.created_by_email || 'Admin'}
                       </td>
                       <td>
@@ -315,10 +315,10 @@ export default function UserManagementPage() {
                           </button>
                         )}
                         {inv.status === 'used' && (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>Registered</span>
+                          <span style={{ fontSize: '0.75rem', color: '#111827', fontWeight: 500 }}>Registered</span>
                         )}
                         {(inv.status === 'revoked' || inv.status === 'expired') && (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>Inactive</span>
+                          <span style={{ fontSize: '0.75rem', color: '#111827', fontWeight: 500 }}>Inactive</span>
                         )}
                       </td>
                     </tr>
@@ -333,12 +333,12 @@ export default function UserManagementPage() {
       {/* Tab 2: Users List */}
       {activeTab === 'users' && (
         <div className="glass-panel" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)', marginBottom: '16px' }}>
             Registered System Users
           </h3>
 
           {users.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-faint)' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-faint, #6B7280)' }}>
               No registered users found.
             </div>
           ) : (
@@ -346,19 +346,19 @@ export default function UserManagementPage() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Email Address</th>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Account Status</th>
-                    <th>Joined</th>
-                    <th>Action</th>
+                    <th style={{ color: '#111827' }}>Email Address</th>
+                    <th style={{ color: '#111827' }}>Name</th>
+                    <th style={{ color: '#111827' }}>Role</th>
+                    <th style={{ color: '#111827' }}>Account Status</th>
+                    <th style={{ color: '#111827' }}>Joined</th>
+                    <th style={{ color: '#111827' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u) => (
                     <tr key={u.id}>
-                      <td style={{ fontWeight: 600, color: '#fff' }}>{u.email}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>
+                      <td style={{ fontWeight: 600, color: '#111827' }}>{u.email}</td>
+                      <td style={{ color: '#111827' }}>
                         {[u.first_name, u.last_name].filter(Boolean).join(' ') || '—'}
                       </td>
                       <td>
@@ -371,7 +371,7 @@ export default function UserManagementPage() {
                           {u.is_active || u.status === 'active' ? 'active' : 'inactive'}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--text-faint)', fontSize: '0.8125rem' }}>
+                      <td style={{ color: '#111827', fontSize: '0.8125rem' }}>
                         {new Date(u.date_joined).toLocaleDateString()}
                       </td>
                       <td>
@@ -390,7 +390,7 @@ export default function UserManagementPage() {
                             {u.is_active ? 'Deactivate' : 'Activate'}
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>System Admin</span>
+                          <span style={{ fontSize: '0.75rem', color: '#111827', fontWeight: 500 }}>System Admin</span>
                         )}
                       </td>
                     </tr>

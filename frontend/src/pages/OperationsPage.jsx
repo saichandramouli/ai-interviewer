@@ -30,8 +30,8 @@ export default function OperationsPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff' }}>Asynchronous Operations</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main, #111827)' }}>Asynchronous Operations</h2>
+          <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.875rem' }}>
             Live status of Celery background jobs (resume parsing & question generation)
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function OperationsPage() {
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#a5b4fc' }}>
                       {op.id.substring(0, 8)}...
                     </td>
-                    <td style={{ fontWeight: 600, color: '#fff', textTransform: 'capitalize' }}>
+                    <td style={{ fontWeight: 600, color: 'var(--text-main, #111827)', textTransform: 'capitalize' }}>
                       {op.operation_type.replace('_', ' ')}
                     </td>
                     <td>

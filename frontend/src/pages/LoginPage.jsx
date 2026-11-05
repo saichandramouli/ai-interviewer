@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, Lock, Mail, AlertCircle, ArrowRight, UserPlus } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Button, Card } from '../components/ui';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -47,69 +49,92 @@ export default function LoginPage() {
         minHeight: '100vh',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'radial-gradient(ellipse at top, #1e1b4b 0%, #0a0d14 70%)',
+        backgroundColor: 'var(--bg-primary, #f8fafc)',
         padding: '24px',
       }}
     >
-      <div
-        className="glass-panel"
-        style={{
-          width: '100%',
-          maxWidth: '420px',
-          padding: '36px',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+      <div style={{ width: '100%', maxWidth: '400px' }}>
+        {/* Brand Header */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+              width: '40px',
+              height: '40px',
+              borderRadius: '8px',
+              backgroundColor: 'var(--primary, #1e293b)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff',
-              boxShadow: 'var(--shadow-glow)',
-              marginBottom: '16px',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '1.125rem',
+              letterSpacing: '-0.02em',
+              marginBottom: '12px',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <Sparkles size={24} />
+            AI
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+          <h2
+            style={{
+              fontSize: 'var(--text-xl, 1.25rem)',
+              fontWeight: 700,
+              color: 'var(--text-main, #202733)',
+              letterSpacing: '-0.015em',
+              margin: 0,
+            }}
+          >
             Recruiter Login
           </h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p
+            style={{
+              fontSize: 'var(--text-sm, 0.8125rem)',
+              color: 'var(--text-muted, #737d8c)',
+              marginTop: '4px',
+            }}
+          >
             Sign in to manage candidates and AI interview plans
           </p>
         </div>
 
-        {error && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '12px 14px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--danger-bg)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#f87171',
-              fontSize: '0.8125rem',
-              marginBottom: '20px',
-            }}
-          >
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
-            <span>{error}</span>
-          </div>
-        )}
+        {/* Card Form */}
+        <Card padding="28px">
+          {error && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-sm, 6px)',
+                backgroundColor: 'var(--danger-bg, #fef2f2)',
+                border: '1px solid var(--danger-border, #fecaca)',
+                color: 'var(--danger-text, #991b1b)',
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                marginBottom: '16px',
+                lineHeight: 1.4,
+              }}
+            >
+              <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <span>{error}</span>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">
-              Email Address
-            </label>
-            <div style={{ position: 'relative' }}>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label
+                className="form-label"
+                htmlFor="email"
+                style={{
+                  fontSize: 'var(--text-sm, 0.8125rem)',
+                  fontWeight: 500,
+                  color: 'var(--text-main, #202733)',
+                  marginBottom: '4px',
+                  display: 'block',
+                }}
+              >
+                Email Address
+              </label>
               <input
                 id="email"
                 type="email"
@@ -118,72 +143,117 @@ export default function LoginPage() {
                 placeholder="recruiter@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-subtle, #e2e8f0)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  color: 'var(--text-main, #202733)',
+                  fontSize: 'var(--text-base, 0.875rem)',
+                }}
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">
-              Password
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="password"
-                type="password"
-                required
-                className="form-input"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label
+                className="form-label"
+                htmlFor="password"
+                style={{
+                  fontSize: 'var(--text-sm, 0.8125rem)',
+                  fontWeight: 500,
+                  color: 'var(--text-main, #202733)',
+                  marginBottom: '4px',
+                  display: 'block',
+                }}
+              >
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="form-input"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 36px 8px 12px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid var(--border-subtle, #e2e8f0)',
+                    borderRadius: 'var(--radius-sm, 6px)',
+                    color: 'var(--text-main, #202733)',
+                    fontSize: 'var(--text-base, 0.875rem)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide' : 'Show'}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted, #737d8c)',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-            style={{ width: '100%', marginTop: '12px', padding: '12px' }}
-          >
-            {loading ? 'Authenticating...' : 'Sign In'}
-            {!loading && <ArrowRight size={16} />}
-          </button>
-        </form>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              loading={loading}
+              style={{ width: '100%', padding: '10px 14px' }}
+            >
+              Sign In
+            </Button>
+          </form>
 
-        {/* Admin-Controlled Registration Link */}
-        <div
-          style={{
-            marginTop: '20px',
-            paddingTop: '18px',
-            borderTop: '1px solid var(--border-subtle)',
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-            Have an invitation token?
-          </div>
-          <Link
-            to="/register"
+          {/* Invitation Registration Link */}
+          <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              marginTop: '6px',
-              color: 'var(--primary)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              transition: 'opacity 0.15s',
+              marginTop: '20px',
+              paddingTop: '16px',
+              borderTop: '1px solid var(--border-subtle, #e2e8f0)',
+              textAlign: 'center',
             }}
           >
-            <UserPlus size={16} />
-            <span>Register with Invitation</span>
-          </Link>
-        </div>
-
-        <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-faint)' }}>
-          Local development JWT session • Password and credentials never exposed
-        </div>
+            <div style={{ fontSize: 'var(--text-xs, 0.75rem)', color: 'var(--text-muted, #737d8c)' }}>
+              Have an invitation token?
+            </div>
+            <Link
+              to="/register"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: '6px',
+                color: 'var(--primary-accent, #2563eb)',
+                fontWeight: 600,
+                fontSize: 'var(--text-sm, 0.8125rem)',
+                textDecoration: 'none',
+                transition: 'color 0.15s ease',
+              }}
+            >
+              <UserPlus size={14} />
+              <span>Register with Invitation</span>
+            </Link>
+          </div>
+        </Card>
       </div>
     </div>
   );

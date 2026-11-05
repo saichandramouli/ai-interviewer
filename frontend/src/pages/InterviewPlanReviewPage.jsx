@@ -68,11 +68,11 @@ export default function InterviewPlanReviewPage() {
               <span className="badge badge-completed">AI Generated Plan</span>
               <span className={`badge badge-${interview.status}`}>{interview.status}</span>
             </div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main, #111827)' }}>
               Interview Plan: {interview.candidate_name || interview.candidate}
             </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem', marginTop: '4px' }}>
-              Role: <strong style={{ color: '#fff' }}>{interview.job_title || interview.job}</strong>
+            <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.9375rem', marginTop: '4px' }}>
+              Role: <strong style={{ color: 'var(--text-main, #111827)' }}>{interview.job_title || interview.job}</strong>
             </p>
           </div>
           {planData.total_estimated_minutes && (
@@ -119,13 +119,13 @@ export default function InterviewPlanReviewPage() {
       {/* Questions List */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)' }}>
             Interview Questions ({questions.length})
           </h3>
         </div>
 
         {questions.length === 0 ? (
-          <div className="glass-panel" style={{ padding: '36px', textAlign: 'center', color: 'var(--text-faint)' }}>
+          <div className="glass-panel" style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted, #4B5563)' }}>
             No questions generated for this interview yet. Click "Generate AI Plan" on the Interviews page to formulate questions.
           </div>
         ) : (
@@ -140,7 +140,7 @@ export default function InterviewPlanReviewPage() {
                         height: '28px',
                         borderRadius: 'var(--radius-full)',
                         background: 'var(--bg-elevated)',
-                        color: '#fff',
+                        color: 'var(--text-main, #111827)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -153,16 +153,16 @@ export default function InterviewPlanReviewPage() {
                     <span className="badge badge-scheduled" style={{ textTransform: 'capitalize' }}>
                       {q.category}
                     </span>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#a5b4fc' }}>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#2563eb' }}>
                       {q.competency}
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #4B5563)' }}>
                     Est: {q.estimated_minutes || 3} mins
                   </span>
                 </div>
 
-                <p style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', margin: '12px 0 16px 0', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main, #111827)', margin: '12px 0 16px 0', lineHeight: 1.5 }}>
                   {q.question_text}
                 </p>
 

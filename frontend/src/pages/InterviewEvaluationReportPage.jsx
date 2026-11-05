@@ -235,11 +235,11 @@ export default function InterviewEvaluationReportPage() {
                 </span>
               )}
             </div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#fff', margin: '4px 0' }}>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--text-main, #111827)', margin: '4px 0' }}>
               {interview?.candidate_name || 'Candidate Evaluation Report'}
             </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem', margin: 0 }}>
-              Position: <strong style={{ color: '#fff' }}>{interview?.job_title || 'Software Role'}</strong>
+            <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.9375rem', margin: 0 }}>
+              Position: <strong style={{ color: 'var(--text-main, #111827)' }}>{interview?.job_title || 'Software Role'}</strong>
               {interview?.candidate_email && ` • ${interview.candidate_email}`}
             </p>
           </div>

@@ -158,12 +158,12 @@ export default function AdminDashboardPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main, #111827)', letterSpacing: '-0.02em' }}>
               Admin Dashboard
             </h2>
             <span className="badge badge-completed" style={{ fontSize: '0.7rem' }}>Administrator</span>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
+          <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.875rem', marginTop: '4px' }}>
             User and recruiter account management console
           </p>
         </div>
@@ -209,10 +209,10 @@ export default function AdminDashboardPage() {
             <UserPlus size={18} />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)' }}>
               Create Recruiter Account (Send Invitation)
             </h3>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #4B5563)' }}>
               Issue a secure, single-use 48-hour registration invitation token for a new recruiter.
             </p>
           </div>
@@ -293,8 +293,8 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div style={{ marginTop: '18px' }}>
-                <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 600 }}>{card.label}</span>
-                <div style={{ fontSize: '1.875rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>{card.value}</div>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #4B5563)', fontWeight: 600 }}>{card.label}</span>
+                <div style={{ fontSize: '1.875rem', fontWeight: 800, color: '#111827', marginTop: '4px' }}>{card.value}</div>
               </div>
             </div>
           );
@@ -306,14 +306,14 @@ export default function AdminDashboardPage() {
         {/* Recruiter Accounts List */}
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff' }}>Recruiter Accounts</h3>
-            <Link to="/admin/users" style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)' }}>Recruiter Accounts</h3>
+            <Link to="/admin/users" style={{ fontSize: '0.8125rem', color: 'var(--primary-accent, #2563eb)', fontWeight: 600 }}>
               View all
             </Link>
           </div>
 
           {recentUsers.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-faint)' }}>
+            <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-faint, #6B7280)' }}>
               No recruiters registered yet. Issue an invitation to onboard a recruiter.
             </div>
           ) : (
@@ -329,9 +329,9 @@ export default function AdminDashboardPage() {
                 <tbody>
                   {recentUsers.map((u) => (
                     <tr key={u.id}>
-                      <td style={{ fontWeight: 600, color: '#fff' }}>
+                      <td style={{ fontWeight: 600, color: 'var(--text-main, #111827)' }}>
                         <div>{u.email}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-faint, #6B7280)' }}>
                           {[u.first_name, u.last_name].filter(Boolean).join(' ') || 'Recruiter'}
                         </div>
                       </td>
@@ -366,14 +366,14 @@ export default function AdminDashboardPage() {
         {/* Recent Invitations */}
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff' }}>Recent Invitations</h3>
-            <Link to="/admin/users" style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-heading, #1F2937)' }}>Recent Invitations</h3>
+            <Link to="/admin/users" style={{ fontSize: '0.8125rem', color: 'var(--primary-accent, #2563eb)', fontWeight: 600 }}>
               Manage all
             </Link>
           </div>
 
           {recentInvitations.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-faint)' }}>
+            <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-faint, #6B7280)' }}>
               No invitations issued yet.
             </div>
           ) : (
@@ -389,9 +389,9 @@ export default function AdminDashboardPage() {
                 <tbody>
                   {recentInvitations.map((inv) => (
                     <tr key={inv.id}>
-                      <td style={{ fontWeight: 600, color: '#fff' }}>
+                      <td style={{ fontWeight: 600, color: 'var(--text-main, #111827)' }}>
                         <div>{inv.email}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-faint, #6B7280)' }}>
                           Expires: {new Date(inv.expires_at).toLocaleDateString()}
                         </div>
                       </td>

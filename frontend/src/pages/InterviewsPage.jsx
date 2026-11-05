@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import { Plus, Sparkles, RefreshCw, Eye, Play, Award, Send } from 'lucide-react';
+import { Plus, Sparkles, RefreshCw, Eye, Play, Award, Send, Calendar, Clock } from 'lucide-react';
 import CandidateInviteModal from '../components/CandidateInviteModal';
 
 export default function InterviewsPage() {
@@ -69,8 +69,8 @@ export default function InterviewsPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff' }}>Interview Sessions</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main, #111827)' }}>Interview Sessions</h2>
+          <p style={{ color: 'var(--text-muted, #4B5563)', fontSize: '0.875rem' }}>
             Schedule sessions, generate AI plans, and view transcripts
           </p>
         </div>
@@ -107,19 +107,54 @@ export default function InterviewsPage() {
                   <th>Candidate</th>
                   <th>Job Title</th>
                   <th>Status</th>
+                  <th>Scheduled Time</th>
                   <th>Plan & Questions</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {interviews.map((intv) => (
-                  <tr key={intv.id}>
-                    <td style={{ fontWeight: 600, color: '#fff' }}>{intv.candidate_name || intv.candidate}</td>
-                    <td style={{ color: 'var(--text-muted)' }}>{intv.job_title || intv.job}</td>
-                    <td>
-                      <span className={`badge badge-${intv.status}`}>{intv.status}</span>
-                    </td>
-                    <td>
+                {interviews.map((intv) => {
+                  let formattedScheduled = null;
+                  if (intv.scheduled_at) {
+                    try {
+                      const dt = new Date(intv.scheduled_at);
+                      formattedScheduled = dt.toLocaleString(undefined, {
+                        timeZone: intv.timezone || undefined,
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      });
+                    } catch {
+                      formattedScheduled = new Date(intv.scheduled_at).toLocaleString();
+                    }
+                  }
+
+                  return (
+                    <tr key={intv.id}>
+                      <td style={{ fontWeight: 600, color: 'var(--text-main, #111827)' }}>{intv.candidate_name || intv.candidate}</td>
+                      <td style={{ color: 'var(--text-muted, #4B5563)' }}>{intv.job_title || intv.job}</td>
+                      <td>
+                        <span className={`badge badge-${intv.status}`}>{intv.status}</span>
+                      </td>
+                      <td>
+                        {formattedScheduled ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: 'var(--text-main, #111827)', fontWeight: 500 }}>
+                              <Clock size={13} style={{ color: 'var(--primary-accent, #2563eb)' }} />
+                              <span>{formattedScheduled}</span>
+                            </div>
+                            {intv.timezone && (
+                              <span style={{ fontSize: '0.6875rem', color: 'var(--text-faint, #6B7280)', paddingLeft: '19px' }}>
+                                {intv.timezone}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-faint, #6B7280)' }}>
+                            {intv.initiation_type === 'manual' ? 'Manual Initiation' : '—'}
+                          </span>
+                        )}
+                      </td>
+                      <td>
                       <button
                         onClick={() => handleGeneratePlan(intv.id)}
                         disabled={generatingId === intv.id}
@@ -179,8 +214,9 @@ export default function InterviewsPage() {
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                );
+              })}
+            </tbody>
             </table>
           </div>
         )}

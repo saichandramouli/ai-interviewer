@@ -53,7 +53,10 @@ class InterviewViewSet(viewsets.ModelViewSet):
         return InterviewDetailSerializer
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        initiation_type = serializer.validated_data.get('initiation_type', Interview.INITIATION_MANUAL)
+        scheduled_at = serializer.validated_data.get('scheduled_at')
+        initial_status = Interview.STATUS_SCHEDULED if (initiation_type == Interview.INITIATION_SCHEDULED and scheduled_at) else Interview.STATUS_DRAFT
+        serializer.save(created_by=self.request.user, status=initial_status)
 
     def destroy(self, request, *args, **kwargs):
         interview = self.get_object()

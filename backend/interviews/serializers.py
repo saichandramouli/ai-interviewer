@@ -1,3 +1,5 @@
+import zoneinfo
+from django.utils import timezone
 from rest_framework import serializers
 from interviews.models import Interview, InterviewQuestion, TranscriptEntry, InterviewStatusTransitionError
 from candidates.models import Candidate
@@ -110,5 +112,30 @@ class InterviewDetailSerializer(serializers.ModelSerializer):
                 self.instance.validate_transition(new_status)
             except InterviewStatusTransitionError as err:
                 raise serializers.ValidationError({"status": str(err)})
+
+        # Scheduled interview validation
+        initiation_type = attrs.get('initiation_type') or (self.instance.initiation_type if self.instance else Interview.INITIATION_MANUAL)
+        if initiation_type == Interview.INITIATION_SCHEDULED:
+            scheduled_at = attrs.get('scheduled_at') or (self.instance.scheduled_at if self.instance else None)
+            if not scheduled_at:
+                raise serializers.ValidationError(
+                    {"scheduled_at": "scheduled_at is mandatory when initiation_type is 'scheduled'."}
+                )
+
+            # Validate timezone identifier if provided
+            tz_str = attrs.get('timezone') or (self.instance.timezone if self.instance else 'UTC')
+            try:
+                zoneinfo.ZoneInfo(tz_str)
+            except Exception:
+                raise serializers.ValidationError(
+                    {"timezone": f"'{tz_str}' is not a valid IANA timezone identifier."}
+                )
+
+            # Reject past scheduled dates
+            now = timezone.now()
+            if scheduled_at <= now:
+                raise serializers.ValidationError(
+                    {"scheduled_at": "Scheduled interview date and time must be in the future."}
+                )
 
         return attrs

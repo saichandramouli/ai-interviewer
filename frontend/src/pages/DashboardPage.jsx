@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { Users, Briefcase, FileQuestion, ArrowUpRight, Plus } from 'lucide-react';
+import {
+  Users,
+  Briefcase,
+  CalendarCheck,
+  Plus,
+  ArrowUpRight,
+  AlertCircle,
+  Loader2,
+  FileQuestion,
+} from 'lucide-react';
+import { PageHeader, Card, Button, Badge, DataTable } from '../components/ui';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     candidatesCount: 0,
     jobsCount: 0,
@@ -22,10 +33,20 @@ export default function DashboardPage() {
           api.get('/interviews/'),
         ]);
 
-        const cCount = candResp.data.count !== undefined ? candResp.data.count : (candResp.data.results?.length || candResp.data.length || 0);
-        const jCount = jobResp.data.count !== undefined ? jobResp.data.count : (jobResp.data.results?.length || jobResp.data.length || 0);
-        const iCount = intResp.data.count !== undefined ? intResp.data.count : (intResp.data.results?.length || intResp.data.length || 0);
-        const recent = intResp.data.results || (Array.isArray(intResp.data) ? intResp.data : []);
+        const cCount =
+          candResp.data.count !== undefined
+            ? candResp.data.count
+            : candResp.data.results?.length || candResp.data.length || 0;
+        const jCount =
+          jobResp.data.count !== undefined
+            ? jobResp.data.count
+            : jobResp.data.results?.length || jobResp.data.length || 0;
+        const iCount =
+          intResp.data.count !== undefined
+            ? intResp.data.count
+            : intResp.data.results?.length || intResp.data.length || 0;
+        const recent =
+          intResp.data.results || (Array.isArray(intResp.data) ? intResp.data : []);
 
         setStats({
           candidatesCount: cCount,
@@ -43,129 +64,309 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  if (loading) {
-    return <div style={{ color: 'var(--text-muted)' }}>Loading recruiter overview...</div>;
-  }
-
   const statCards = [
-    { label: 'My Candidates', value: stats.candidatesCount, icon: Users, path: '/candidates', color: '#6366f1' },
-    { label: 'My Active Jobs', value: stats.jobsCount, icon: Briefcase, path: '/jobs', color: '#06b6d4' },
-    { label: 'Scheduled / In-Progress Interviews', value: stats.interviewsCount, icon: FileQuestion, path: '/interviews', color: '#10b981' },
+    {
+      label: 'My Candidates',
+      value: stats.candidatesCount,
+      icon: Users,
+      path: '/candidates',
+      color: '#2563eb',
+      bgColor: '#eff6ff',
+    },
+    {
+      label: 'My Active Jobs',
+      value: stats.jobsCount,
+      icon: Briefcase,
+      path: '/jobs',
+      color: '#0891b2',
+      bgColor: '#ecfeff',
+    },
+    {
+      label: 'Scheduled / In-Progress Interviews',
+      value: stats.interviewsCount,
+      icon: CalendarCheck,
+      path: '/interviews',
+      color: '#16a34a',
+      bgColor: '#f0fdf4',
+    },
+  ];
+
+  // Define columns for Recent Interviews DataTable
+  const interviewColumns = [
+    {
+      header: 'Candidate',
+      accessor: 'candidate_name',
+      render: (row) => (
+        <span style={{ fontWeight: 600, color: 'var(--text-main, #111827)' }}>
+          {row.candidate_name || row.candidate || '—'}
+        </span>
+      ),
+    },
+    {
+      header: 'Job Title',
+      accessor: 'job_title',
+      render: (row) => (
+        <span style={{ color: 'var(--text-muted, #4B5563)' }}>
+          {row.job_title || row.job || '—'}
+        </span>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: 'status',
+      render: (row) => <Badge status={row.status}>{row.status}</Badge>,
+    },
+    {
+      header: 'Created',
+      accessor: 'created_at',
+      render: (row) => (
+        <span style={{ color: 'var(--text-muted, #4B5563)', fontSize: 'var(--text-xs, 0.75rem)' }}>
+          {row.created_at ? new Date(row.created_at).toLocaleDateString() : '—'}
+        </span>
+      ),
+    },
+    {
+      header: 'Action',
+      render: (row) => (
+        <Link
+          to={`/interviews/${row.id}/plan`}
+          className="btn btn-secondary"
+          style={{ padding: '4px 10px', fontSize: 'var(--text-xs, 0.75rem)' }}
+        >
+          Review Plan
+        </Link>
+      ),
+    },
   ];
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-        <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-            Recruiter Overview
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
-            Manage candidates, jobs, interview plans, and AI evaluations
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <Link to="/candidates/new" className="btn btn-primary">
-            <Plus size={16} />
-            <span>Add Candidate</span>
-          </Link>
-          <Link to="/jobs/new" className="btn btn-secondary">
-            <Plus size={16} />
-            <span>Create Job</span>
-          </Link>
-        </div>
-      </div>
+      {/* Reusable Enterprise PageHeader */}
+      <PageHeader
+        title="Recruiter Overview"
+        description="Manage candidates, jobs, interview plans, and AI evaluations"
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Button
+              variant="primary"
+              size="md"
+              icon={Plus}
+              onClick={() => navigate('/candidates/new')}
+            >
+              Add Candidate
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              icon={Plus}
+              onClick={() => navigate('/jobs/new')}
+            >
+              Create Job
+            </Button>
+          </div>
+        }
+      />
 
+      {/* Error State Banner */}
       {error && (
-        <div style={{ padding: '14px', borderRadius: 'var(--radius-md)', background: 'var(--danger-bg)', color: '#f87171', marginBottom: '20px' }}>
-          {error}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-sm, 6px)',
+            backgroundColor: 'var(--danger-bg, #fef2f2)',
+            border: '1px solid var(--danger-border, #fecaca)',
+            color: 'var(--danger-text, #991b1b)',
+            fontSize: 'var(--text-sm, 0.8125rem)',
+            marginBottom: '20px',
+          }}
+        >
+          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Link key={card.label} to={card.path} className="glass-panel" style={{ padding: '24px', display: 'block' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      {/* Loading Presentation */}
+      {loading ? (
+        <Card padding="40px" style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              color: 'var(--text-muted, #737d8c)',
+              fontSize: 'var(--text-sm, 0.8125rem)',
+            }}
+          >
+            <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+            <span>Loading recruiter overview metrics...</span>
+          </div>
+        </Card>
+      ) : (
+        <>
+          {/* KPI Cards Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: '16px',
+              marginBottom: '24px',
+            }}
+          >
+            {statCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link
+                  key={card.label}
+                  to={card.path}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  <Card
+                    padding="20px"
+                    style={{
+                      cursor: 'pointer',
+                      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-strong, #cbd5e1)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-subtle, #e2e8f0)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '8px',
+                          backgroundColor: card.bgColor,
+                          color: card.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon size={20} />
+                      </div>
+                      <ArrowUpRight size={16} style={{ color: 'var(--text-faint, #94a3b8)' }} />
+                    </div>
+                    <div style={{ marginTop: '16px' }}>
+                      <span
+                        style={{
+                          fontSize: 'var(--text-xs, 0.75rem)',
+                          color: 'var(--text-muted, #4B5563)',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        {card.label}
+                      </span>
+                      <div
+                        style={{
+                          fontSize: '1.75rem',
+                          fontWeight: 700,
+                          color: 'var(--text-main, #111827)',
+                          letterSpacing: '-0.02em',
+                          marginTop: '4px',
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {card.value}
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Recent Interviews Section */}
+          <Card
+            title="My Recent Interviews"
+            description="Active candidate sessions and evaluation status"
+            headerAction={
+              <Link
+                to="/interviews"
+                style={{
+                  fontSize: 'var(--text-xs, 0.75rem)',
+                  color: 'var(--primary-accent, #2563eb)',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                View all interviews →
+              </Link>
+            }
+            padding="0"
+          >
+            {stats.recentInterviews.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '40px 20px',
+                  color: 'var(--text-muted, #737d8c)',
+                }}
+              >
+                <FileQuestion
+                  size={32}
+                  style={{
+                    color: 'var(--text-faint, #94a3b8)',
+                    margin: '0 auto 12px auto',
+                    display: 'block',
+                  }}
+                />
+                <p style={{ fontSize: 'var(--text-sm, 0.8125rem)', margin: 0 }}>
+                  No interview sessions created yet. Click "Add Candidate" and "Create Job" to get started.
+                </p>
                 <div
                   style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '10px',
-                    background: `${card.color}20`,
-                    color: card.color,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    gap: '12px',
+                    marginTop: '16px',
                   }}
                 >
-                  <Icon size={22} />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={Plus}
+                    onClick={() => navigate('/candidates/new')}
+                  >
+                    Add Candidate
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={Plus}
+                    onClick={() => navigate('/jobs/new')}
+                  >
+                    Create Job
+                  </Button>
                 </div>
-                <ArrowUpRight size={18} style={{ color: 'var(--text-faint)' }} />
               </div>
-              <div style={{ marginTop: '18px' }}>
-                <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 600 }}>{card.label}</span>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>{card.value}</div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Recent Interviews Table */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff' }}>My Recent Interviews</h3>
-          <Link to="/interviews" style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>
-            View all
-          </Link>
-        </div>
-
-        {stats.recentInterviews.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-faint)' }}>
-            No interview sessions created yet. Click "Add Candidate" and "Create Job" to get started.
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Candidate</th>
-                  <th>Job Title</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.recentInterviews.map((intv) => (
-                  <tr key={intv.id}>
-                    <td style={{ fontWeight: 600, color: '#fff' }}>{intv.candidate_name || intv.candidate}</td>
-                    <td style={{ color: 'var(--text-muted)' }}>{intv.job_title || intv.job}</td>
-                    <td>
-                      <span className={`badge badge-${intv.status}`}>{intv.status}</span>
-                    </td>
-                    <td style={{ color: 'var(--text-faint)', fontSize: '0.8125rem' }}>
-                      {new Date(intv.created_at).toLocaleDateString()}
-                    </td>
-                    <td>
-                      <Link
-                        to={`/interviews/${intv.id}/plan`}
-                        className="btn btn-secondary"
-                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                      >
-                        Review Plan
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+            ) : (
+              <DataTable
+                columns={interviewColumns}
+                data={stats.recentInterviews}
+                style={{ border: 'none', borderRadius: 0 }}
+              />
+            )}
+          </Card>
+        </>
+      )}
     </div>
   );
 }
